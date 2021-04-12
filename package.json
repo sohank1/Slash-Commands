@@ -1,0 +1,25 @@
+{
+  "name": "Slash-Commands",
+  "version": "1.0.0",
+  "description": "A Discord Slash Command package for Discord.js",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "dev": "nodemon --exec ts-node src/index.ts"	
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CreeperPlanet26/Slash-Commands.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CreeperPlanet26/Slash-Commands/issues"
+  },
+  "homepage": "https://github.com/CreeperPlanet26/Slash-Commands#readme",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "typescript": "^4.2.4"
+  }
+}
