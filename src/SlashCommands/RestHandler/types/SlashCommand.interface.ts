@@ -17,5 +17,10 @@ export interface SlashCommandType {
     guild: Guild | null;
     channel: Channel | null;
     client: Client;
-  }) => string | MessageEmbed | Array<MessageEmbed>;
+  }) =>
+    | string
+    | MessageEmbed
+    | Array<MessageEmbed>
+    | Array<string>
+    | Array<string | MessageEmbed>;
 }

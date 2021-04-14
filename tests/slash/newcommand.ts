@@ -15,6 +15,9 @@ export default new SlashCommand({
   // This is how I would imagine it to work somehow, but I am unsure.
   response: ({ client, user }) => {
     return [
+      "This is a value!",
+      "\n",
+      client.user.username,
       new MessageEmbed({
         description: `This is a test embed!`,
         author: {

@@ -42,8 +42,18 @@ export class RestHandler {
       _data.content = command_callback_response;
     else if (command_callback_response instanceof MessageEmbed)
       _data.embeds = [command_callback_response];
-    else if (command_callback_response instanceof Array)
-      _data.embeds = command_callback_response;
+    else if (command_callback_response instanceof Array) {
+      const strings = command_callback_response.filter(
+        (v) => typeof v === "string",
+      );
+      const embeds = command_callback_response.filter(
+        (v) => v instanceof MessageEmbed,
+      );
+
+      if (strings.length > 0) _data.content = strings.join("");
+      // @ts-ignore -- Idk why this is needed, I thought the above filter would take care of it... /shrug
+      if (embeds.length > 0) _data.embeds = embeds;
+    }
 
     return await this.client.api
       .interactions(interaction.id, interaction.token)
