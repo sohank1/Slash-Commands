@@ -3,12 +3,28 @@ import { Client } from "../../Client";
 import { ApplicationCommand } from "./types/ApplicationCommand";
 import { SlashCommandType } from "./types/SlashCommand.interface";
 import { Interaction } from "./types/Interaction";
+// TODO: Add support for guild specific slash commands
+// As of now, all commands made are global.
+
 /**
  * Private class used in the SlashCommands class
  * Used to send slash command api requests
  */
 export class RestHandler {
   constructor(private client: Client) {}
+
+  public async get_commands(): Promise<Array<ApplicationCommand>> {
+    return await this.client.api
+      .applications(this.client.user.id)
+      .commands.get();
+  }
+
+  public async delete(command_id: string): Promise<void> {
+    return await this.client.api
+      .applications(this.client.user.id)
+      .commands(command_id)
+      .delete();
+  }
 
   public async post(data: ApplicationCommand): Promise<ApplicationCommand> {
     return await this.client.api
@@ -23,8 +39,6 @@ export class RestHandler {
     guild?: Guild | null,
     channel?: Channel | null,
   ): Promise<unknown | undefined> {
-    // if (!data.response) return undefined;
-
     const command_callback_response = data.response({
       client: this.client,
       guild,
@@ -35,8 +49,6 @@ export class RestHandler {
     });
     if (!command_callback_response) return undefined;
 
-    // TODO: tts support, allowed_mentions support,
-    // flags support, multi type support (ie: MessageEmbed AND string)
     const _data: { content?: string; embeds?: Array<MessageEmbed> } = {};
     if (typeof command_callback_response === "string")
       _data.content = command_callback_response;

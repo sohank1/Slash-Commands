@@ -3,7 +3,8 @@ import { Client } from "../Client";
 import { initCommands } from "./InitCommands";
 import { RestHandler } from "./RestHandler/RestHandler";
 import { ApplicationCommand } from "./RestHandler/types/ApplicationCommand";
-
+// TODO: Add support for guild specific slash commands
+// As of now, all commands made are global.
 export class SlashCommands {
   private _rest = new RestHandler(<Client>(<unknown>this.client));
 
