@@ -25,6 +25,15 @@ export async function initCommands(
     const { default: Command }: { default: SlashCommand } = await import(
       join(path, file)
     );
+    if (!(Command instanceof SlashCommand)) {
+      console.log(
+        `SlashCommand at path ${join(
+          path,
+          file,
+        )} is invalid, you must use the SlashCommand class.`,
+      );
+      continue;
+    }
     if (!Command.data) continue;
 
     await rest.post(Command.data);

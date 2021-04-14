@@ -7,6 +7,7 @@ export interface SlashCommandType {
   // id?: string;
   // application_id?: string;
   name: string;
+  guilds?: string | string[] | Guild[];
   description: string;
   options?: ApplicationCommandOption[];
   default_permissions?: boolean | true;
