@@ -1,7 +1,7 @@
 import { Channel, Guild, GuildMember, MessageEmbed, User } from "discord.js";
-import { Client } from "../../../Client";
-import { ApplicationCommandOption } from "./ApplicationCommandOption";
-import { Interaction } from "./Interaction";
+import { Client } from "../../Client";
+import { ApplicationCommandOption } from "../RestHandler/types/ApplicationCommandOption";
+import { Interaction } from "../RestHandler/types/Interaction";
 
 export interface SlashCommandType {
   // id?: string;

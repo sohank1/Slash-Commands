@@ -1,7 +1,7 @@
 import { Channel, Guild, GuildMember, MessageEmbed } from "discord.js";
 import { Client } from "../../Client";
 import { ApplicationCommand } from "./types/ApplicationCommand";
-import { SlashCommandType } from "./types/SlashCommand.interface";
+import { SlashCommandType } from "../SlashCommand/SlashCommand.interface";
 import { Interaction } from "./types/Interaction";
 // TODO: Add support for guild specific slash commands
 // As of now, all commands made are global.

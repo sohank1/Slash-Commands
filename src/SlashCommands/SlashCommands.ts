@@ -1,6 +1,6 @@
 import { Client as DjsClient } from "discord.js";
 import { Client } from "../Client";
-import { initCommands } from "./InitCommands";
+import { initCommands } from "./SlashCommand/InitCommands";
 import { RestHandler } from "./RestHandler/RestHandler";
 import { ApplicationCommand } from "./RestHandler/types/ApplicationCommand";
 // TODO: Add support for guild specific slash commands
