@@ -13,24 +13,29 @@ import { Interaction } from "./types/Interaction";
 export class RestHandler {
   constructor(private client: Client) {}
 
-  public async get_commands(): Promise<Array<ApplicationCommand>> {
-    return await this.client.api
-      .applications(this.client.user.id)
-      .commands.get();
+  public async get_commands(
+    guild_id?: string,
+  ): Promise<Array<ApplicationCommand>> {
+    let api = this.client.api.applications(this.client.user.id);
+    if (guild_id) api = api.guilds(guild_id);
+    return await api.commands.get();
   }
 
-  public async delete(command_id: string): Promise<void> {
-    return await this.client.api
-      .applications(this.client.user.id)
-      .commands(command_id)
-      .delete();
+  public async delete(command_id: string, guild_id?: string): Promise<void> {
+    let api = this.client.api.applications(this.client.user.id);
+    if (guild_id) api = api.guilds(guild_id);
+    return await api.commands(command_id).delete();
   }
 
-  public async post(data: ApplicationCommand): Promise<ApplicationCommand> {
-    return await this.client.api
-      .applications(this.client.user.id)
-      .commands.post({ data });
+  public async post(
+    data: ApplicationCommand,
+    guild_id?: string,
+  ): Promise<ApplicationCommand> {
+    let api = this.client.api.applications(this.client.user.id);
+    if (guild_id) api = api.guilds(guild_id);
+    return await api.commands.post({ data });
   }
+
   // Change return type to something that actually makes sense, I just don't know what would be returned.
   public async callback(
     interaction: Interaction,

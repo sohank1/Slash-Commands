@@ -1,3 +1,4 @@
+import { Guild } from "discord.js";
 import { readdirSync } from "fs";
 import { join } from "path";
 import { Client } from "../../Client";
@@ -15,11 +16,17 @@ export async function initCommands(
   // Ideally removing commands that aren't in "code" anymore and updating/creating the rest
   // Use the RestHandler#delete() method~~
   // Finished
-  const current_commands = await rest.get_commands();
+  const current_global_commands = await rest.get_commands();
+  const current_guild_commands = await Promise.all(
+    // Note: For some reason, when added to a new server, this seemingly doesn't work, even if the
+    // bot has admin perms, and thus slash command perms, it still throws a missing perms error.
+    client.guilds.cache.map((g) => rest.get_commands(g.id)),
+  );
 
   const path = join(require.main.path, relative_path);
   const data = readdirSync(path);
-  const commands = new Map<string, SlashCommand>();
+  const global_commands = new Map<string, SlashCommand>();
+  const guild_commands = new Map<string, SlashCommand>();
 
   for (const file of data) {
     const { default: Command }: { default: SlashCommand } = await import(
@@ -34,19 +41,74 @@ export async function initCommands(
       );
       continue;
     }
-    if (!Command.data) continue;
+    // if (!Command.data) continue;
+    if (Command.data.guilds && typeof Command.data.guilds === "string")
+      Command.data.guilds = [Command.data.guilds];
 
-    await rest.post(Command.data);
-    commands.set(Command.data.name.toLowerCase(), Command);
-    console.log("Loaded: " + Command.data.name.toLowerCase()); // This is unecessary, can either be changed to look nicer, or removed.s
+    if (Command.data.guilds !== undefined && Command.data.guilds.length > 0) {
+      for (const guild_id of Command.data.guilds) {
+        if (typeof guild_id === "string") {
+          const guild_object = client.guilds.cache.get(guild_id);
+          if (guild_object === undefined) {
+            console.log(
+              `Guild ID: ${guild_id} is either invalid or the application is not in the given guild.`,
+            );
+            continue;
+          }
+
+          await rest.post(Command.data, guild_id);
+          console.log(
+            `Created Command: ${Command.data.name} in guild ${guild_object.name}`,
+          );
+          guild_commands.set(Command.data.name, Command);
+        } else if (guild_id instanceof Guild) {
+          await rest.post(Command.data, guild_id.id);
+
+          console.log(
+            `Created Command: ${Command.data.name} in guild ${guild_id.name}`,
+          );
+          guild_commands.set(Command.data.name, Command);
+        } else continue;
+      }
+    } else {
+      await rest.post(Command.data);
+      console.log("Loaded Global Command: " + Command.data.name.toLowerCase()); // This is unecessary, can either be changed to look nicer, or removed.s
+      global_commands.set(Command.data.name.toLowerCase(), Command);
+    }
+    // commands.set(Command.data.name.toLowerCase(), Command);
   }
 
   // After commands are initialzied, loop through the commands map to verify that all current_commands
   // are in the commands map
-  for (const apiCommand of current_commands) {
-    if (!commands.get(apiCommand.name.toLowerCase())) {
-      await rest.delete(apiCommand.id);
-      console.log("Deleted: " + apiCommand.name + " from the api."); // This is unecessary, can either be changed to look nicer, or removed.
+  for (const apiCommand of current_global_commands) {
+    if (!global_commands.get(apiCommand.name.toLowerCase())) {
+      try {
+        await rest.delete(apiCommand.id);
+        console.log("Deleted Command: " + apiCommand.name + " from the api."); // This is unecessary, can either be changed to look nicer, or removed.
+      } catch (err) {}
+    }
+  }
+
+  for (const arr_of_commands of current_guild_commands) {
+    if (arr_of_commands.length > 0) {
+      for (const guild_command of arr_of_commands) {
+        // As of right now I can't think of any other way to delete the command correctly other
+        // than looping through all guilds and deleting it from all of them, even if it doesn't exist
+        // in that guild. I don't believe the ApplicationCommand has any information on the
+        // guilds that it exists in, and if the command isn't set in the guild_commands map
+        // then we have no way of knowing which guilds to remove it from... If you have any other way of
+        // doing this, feel free.
+        if (!guild_commands.get(guild_command.name.toLowerCase())) {
+          for (const [guildId, __] of client.guilds.cache) {
+            try {
+              await rest.delete(guild_command.id, guildId);
+              console.log(
+                `Deleted Command: ${guild_command.name} from ${__.name}`,
+              );
+            } catch (err) {}
+          }
+        }
+      }
     }
   }
 
@@ -61,7 +123,8 @@ export async function initCommands(
 
     await rest.callback(
       interaction,
-      commands.get(data.name)?.data,
+      global_commands.get(data.name)?.data ??
+        guild_commands.get(data.name)?.data,
       member_object,
       guild ?? null,
       channel ?? null,
