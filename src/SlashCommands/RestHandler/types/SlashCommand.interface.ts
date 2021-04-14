@@ -4,8 +4,8 @@ import { ApplicationCommandOption } from "./ApplicationCommandOption";
 import { Interaction } from "./Interaction";
 
 export interface SlashCommandType {
-  id?: string;
-  application_id?: string;
+  // id?: string;
+  // application_id?: string;
   name: string;
   description: string;
   options?: ApplicationCommandOption[];
