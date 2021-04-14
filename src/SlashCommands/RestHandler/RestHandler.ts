@@ -1,7 +1,7 @@
-import { Channel, Guild } from "discord.js";
+import { Channel, Guild, GuildMember, MessageEmbed } from "discord.js";
 import { Client } from "../../Client";
 import { ApplicationCommand } from "./types/ApplicationCommand";
-import { GuildMember } from "./types/GuildMember";
+// import { GuildMember } from "./types/GuildMember";
 import { Interaction } from "./types/Interaction";
 import { InteractionResponseEnum } from "./types/InteractionResponseType";
 import { InteractionType } from "./types/InteractionType";
@@ -22,17 +22,30 @@ export class RestHandler {
     interaction: Interaction,
     data: ApplicationCommand,
     member: GuildMember,
-    guild?: Guild | undefined,
-    channel?: Channel | undefined,
+    guild?: Guild | null,
+    channel?: Channel | null,
   ): Promise<unknown | undefined> {
     // if (!data.response) return undefined;
 
     const command_callback_response = data.response({
       client: this.client,
+      guild,
+      member,
+      user: this.client.users.cache.get(member?.user.id),
+      channel,
       interaction,
     });
     if (!command_callback_response) return undefined;
 
+    // TODO: tts support, allowed_mentions support,
+    // flags support, multi type support (ie: MessageEmbed AND string)
+    const _data: { content?: string; embeds?: Array<MessageEmbed> } = {};
+    if (typeof command_callback_response === "string")
+      _data.content = command_callback_response;
+    else if (command_callback_response instanceof MessageEmbed)
+      _data.embeds = [command_callback_response];
+    else if (command_callback_response instanceof Array)
+      _data.embeds = command_callback_response;
     // console.log(interaction, member, guild, channel, command_callback_response);
 
     return await this.client.api
@@ -40,9 +53,7 @@ export class RestHandler {
       .callback.post({
         data: {
           type: 4,
-          data: {
-            content: command_callback_response,
-          },
+          data: _data,
         },
       });
   }

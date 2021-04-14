@@ -19,23 +19,25 @@ export async function initCommands(
       join(path, file)
     );
     if (!Command.data) continue;
-    console.log(Command);
 
     await rest.post(Command.data);
     commands.set(Command.data.name.toLowerCase(), Command);
   }
   // @ts-ignore
   client.ws.on("INTERACTION_CREATE", async (interaction: Interaction) => {
-    console.log("hey", "interaction was made", interaction.data);
     const { member, data, guild_id, channel_id } = interaction;
+
+    const guild = client.guilds.cache.get(guild_id);
+    const channel = client.channels.cache.get(channel_id);
+
+    const member_object = guild?.members.cache.get(member.user.id);
 
     await rest.callback(
       interaction,
       commands.get(data.name)?.data,
-      member,
-      client.guilds.cache.get(guild_id) ?? undefined,
-      client.channels.cache.get(channel_id) ?? undefined,
+      member_object,
+      guild ?? null,
+      channel ?? null,
     );
-    // await this.callback();
   });
 }

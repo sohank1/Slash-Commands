@@ -1,4 +1,4 @@
-import { MessageEmbed } from "discord.js";
+import { Channel, Guild, GuildMember, MessageEmbed, User } from "discord.js";
 import { Client } from "../../../Client";
 import { ApplicationCommandOption } from "./ApplicationCommandOption";
 import { Interaction } from "./Interaction";
@@ -13,6 +13,10 @@ export interface ApplicationCommand {
   // I am unsure of how the responses work, I looked through the docs, but its honestly kind of confusing.
   response: ({}: {
     interaction: Interaction;
+    user: User | null;
+    member: GuildMember | null;
+    guild: Guild | null;
+    channel: Channel | null;
     client: Client;
-  }) => string | MessageEmbed;
+  }) => string | MessageEmbed | Array<MessageEmbed>;
 }
