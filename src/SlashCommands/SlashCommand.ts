@@ -1,5 +1,5 @@
-import { ApplicationCommand } from "./RestHandler/types/ApplicationCommand";
+import { SlashCommandType } from "./RestHandler/types/SlashCommand.interface";
 
 export class SlashCommand {
-  constructor(public data: ApplicationCommand) {}
+  constructor(public data: SlashCommandType) {}
 }

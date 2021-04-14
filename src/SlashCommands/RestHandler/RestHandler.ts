@@ -1,10 +1,8 @@
 import { Channel, Guild, GuildMember, MessageEmbed } from "discord.js";
 import { Client } from "../../Client";
 import { ApplicationCommand } from "./types/ApplicationCommand";
-// import { GuildMember } from "./types/GuildMember";
+import { SlashCommandType } from "./types/SlashCommand.interface";
 import { Interaction } from "./types/Interaction";
-import { InteractionResponseEnum } from "./types/InteractionResponseType";
-import { InteractionType } from "./types/InteractionType";
 /**
  * Private class used in the SlashCommands class
  * Used to send slash command api requests
@@ -17,10 +15,10 @@ export class RestHandler {
       .applications(this.client.user.id)
       .commands.post({ data });
   }
-  // Change type to something that actually makes sense, I just don't know what would be returned.
+  // Change return type to something that actually makes sense, I just don't know what would be returned.
   public async callback(
     interaction: Interaction,
-    data: ApplicationCommand,
+    data: SlashCommandType,
     member: GuildMember,
     guild?: Guild | null,
     channel?: Channel | null,
@@ -46,7 +44,6 @@ export class RestHandler {
       _data.embeds = [command_callback_response];
     else if (command_callback_response instanceof Array)
       _data.embeds = command_callback_response;
-    // console.log(interaction, member, guild, channel, command_callback_response);
 
     return await this.client.api
       .interactions(interaction.id, interaction.token)

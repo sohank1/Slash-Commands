@@ -3,13 +3,19 @@ import { Client } from "../../../Client";
 import { ApplicationCommandOption } from "./ApplicationCommandOption";
 import { Interaction } from "./Interaction";
 
-export interface ApplicationCommand {
+export interface SlashCommandType {
   id?: string;
   application_id?: string;
   name: string;
   description: string;
   options?: ApplicationCommandOption[];
   default_permissions?: boolean | true;
-  // I am unsure of how the responses work, I looked through the docs, but its honestly kind of confusing.
-  // Removing callback from ApplicationCommand type as it's wrong, making its own type.
+  response: ({}: {
+    interaction: Interaction;
+    user: User | null;
+    member: GuildMember | null;
+    guild: Guild | null;
+    channel: Channel | null;
+    client: Client;
+  }) => string | MessageEmbed | Array<MessageEmbed>;
 }
