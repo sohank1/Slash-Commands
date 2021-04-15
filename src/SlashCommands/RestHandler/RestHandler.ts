@@ -15,25 +15,41 @@ export class RestHandler {
 
   public async get_commands(
     guild_id?: string,
-  ): Promise<Array<ApplicationCommand>> {
+  ): Promise<Array<ApplicationCommand> | number> {
     let api = this.client.api.applications(this.client.user.id);
     if (guild_id) api = api.guilds(guild_id);
-    return await api.commands.get();
+
+    try {
+      return await api.commands.get();
+    } catch (err) {
+      return err.httpStatus;
+    }
   }
 
-  public async delete(command_id: string, guild_id?: string): Promise<void> {
+  public async delete(
+    command_id: string,
+    guild_id?: string,
+  ): Promise<void | number> {
     let api = this.client.api.applications(this.client.user.id);
     if (guild_id) api = api.guilds(guild_id);
-    return await api.commands(command_id).delete();
+    try {
+      return await api.commands(command_id).delete();
+    } catch (err) {
+      return err.httpStatus;
+    }
   }
 
   public async post(
     data: ApplicationCommand,
     guild_id?: string,
-  ): Promise<ApplicationCommand> {
+  ): Promise<ApplicationCommand | number> {
     let api = this.client.api.applications(this.client.user.id);
     if (guild_id) api = api.guilds(guild_id);
-    return await api.commands.post({ data });
+    try {
+      return await api.commands.post({ data });
+    } catch (err) {
+      return err.httpStatus;
+    }
   }
 
   // Change return type to something that actually makes sense, I just don't know what would be returned.

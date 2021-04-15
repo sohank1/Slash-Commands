@@ -4,7 +4,7 @@ import { SlashCommand } from "../../src/index";
 export default new SlashCommand({
   name: "somecommand",
   description: "Some test guild Command",
-  guilds: "797927305456254997",
+  guilds: "831969578099277844",
   response: ({ client, member }) => {
     return [
       "Yes indeed",

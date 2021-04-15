@@ -1,5 +1,5 @@
 {
-  "name": "Slash-Commands",
+  "name": "slash-commands",
   "version": "1.0.0",
   "description": "A Discord Slash Command package for Discord.js",
   "main": "lib/index.js",

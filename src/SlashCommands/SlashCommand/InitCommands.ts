@@ -3,6 +3,7 @@ import { readdirSync } from "fs";
 import { join } from "path";
 import { Client } from "../../Client";
 import { RestHandler } from "../RestHandler/RestHandler";
+import { ApplicationCommand } from "../RestHandler/types/ApplicationCommand";
 import { Interaction } from "../RestHandler/types/Interaction";
 import { SlashCommand } from "./SlashCommand";
 // TODO: Add support for guild specific slash commands
@@ -17,11 +18,25 @@ export async function initCommands(
   // Use the RestHandler#delete() method~~
   // Finished
   const current_global_commands = await rest.get_commands();
+  if (
+    typeof current_global_commands === "number" &&
+    current_global_commands === 403
+  )
+    return console.log("Daily limit on command creation hit.");
+
   const current_guild_commands = await Promise.all(
     // Note: For some reason, when added to a new server, this seemingly doesn't work, even if the
     // bot has admin perms, and thus slash command perms, it still throws a missing perms error.
-    client.guilds.cache.map((g) => rest.get_commands(g.id)),
+    client.guilds.cache.map(async (g) => {
+      try {
+        return await rest.get_commands(g.id);
+      } catch (err) {
+        // console.log("err", err);
+      }
+    }),
   );
+
+  console.log(current_guild_commands);
 
   const path = join(require.main.path, relative_path);
   const data = readdirSync(path);
@@ -56,31 +71,47 @@ export async function initCommands(
             continue;
           }
 
-          await rest.post(Command.data, guild_id);
-          console.log(
-            `Created Command: ${Command.data.name} in guild ${guild_object.name}`,
-          );
-          guild_commands.set(Command.data.name, Command);
+          const res = await rest.post(Command.data, guild_id);
+          if (res !== 403) {
+            console.log(
+              `Created Command: ${Command.data.name} in guild ${guild_object.name}`,
+            );
+            guild_commands.set(Command.data.name, Command);
+          } else
+            console.log(
+              `Unable to post command ${Command.data.name} due to daily creation limits.`,
+            );
         } else if (guild_id instanceof Guild) {
-          await rest.post(Command.data, guild_id.id);
-
-          console.log(
-            `Created Command: ${Command.data.name} in guild ${guild_id.name}`,
-          );
-          guild_commands.set(Command.data.name, Command);
+          const res = await rest.post(Command.data, guild_id.id);
+          if (res !== 403) {
+            console.log(
+              `Created Command: ${Command.data.name} in guild ${guild_id.name}`,
+            );
+            guild_commands.set(Command.data.name, Command);
+          } else
+            console.log(
+              `Unable to post command ${Command.data.name} due to daily creation limits.`,
+            );
         } else continue;
       }
     } else {
-      await rest.post(Command.data);
-      console.log("Loaded Global Command: " + Command.data.name.toLowerCase()); // This is unecessary, can either be changed to look nicer, or removed.s
-      global_commands.set(Command.data.name.toLowerCase(), Command);
+      const res = await rest.post(Command.data);
+      if (res !== 403) {
+        console.log(
+          "Loaded Global Command: " + Command.data.name.toLowerCase(),
+        ); // This is unecessary, can either be changed to look nicer, or removed.s
+        global_commands.set(Command.data.name.toLowerCase(), Command);
+      } else
+        console.log(
+          `Unable to post command ${Command.data.name} due to daily creation limits.`,
+        );
     }
     // commands.set(Command.data.name.toLowerCase(), Command);
   }
 
   // After commands are initialzied, loop through the commands map to verify that all current_commands
   // are in the commands map
-  for (const apiCommand of current_global_commands) {
+  for (const apiCommand of current_global_commands as ApplicationCommand[]) {
     if (!global_commands.get(apiCommand.name.toLowerCase())) {
       try {
         await rest.delete(apiCommand.id);
@@ -89,28 +120,28 @@ export async function initCommands(
     }
   }
 
-  for (const arr_of_commands of current_guild_commands) {
-    if (arr_of_commands.length > 0) {
-      for (const guild_command of arr_of_commands) {
-        // As of right now I can't think of any other way to delete the command correctly other
-        // than looping through all guilds and deleting it from all of them, even if it doesn't exist
-        // in that guild. I don't believe the ApplicationCommand has any information on the
-        // guilds that it exists in, and if the command isn't set in the guild_commands map
-        // then we have no way of knowing which guilds to remove it from... If you have any other way of
-        // doing this, feel free.
-        if (!guild_commands.get(guild_command.name.toLowerCase())) {
-          for (const [guildId, __] of client.guilds.cache) {
-            try {
-              await rest.delete(guild_command.id, guildId);
-              console.log(
-                `Deleted Command: ${guild_command.name} from ${__.name}`,
-              );
-            } catch (err) {}
-          }
-        }
-      }
-    }
-  }
+  // for (const arr_of_commands of current_guild_commands) {
+  //   if (arr_of_commands && arr_of_commands.length > 0) {
+  //     for (const guild_command of arr_of_commands) {
+  //       // As of right now I can't think of any other way to delete the command correctly other
+  //       // than looping through all guilds and deleting it from all of them, even if it doesn't exist
+  //       // in that guild. I don't believe the ApplicationCommand has any information on the
+  //       // guilds that it exists in, and if the command isn't set in the guild_commands map
+  //       // then we have no way of knowing which guilds to remove it from... If you have any other way of
+  //       // doing this, feel free.
+  //       if (!guild_commands.get(guild_command.name.toLowerCase())) {
+  //         for (const [guildId, __] of client.guilds.cache) {
+  //           try {
+  //             await rest.delete(guild_command.id, guildId);
+  //             console.log(
+  //               `Deleted Command: ${guild_command.name} from ${__.name}`,
+  //             );
+  //           } catch (err) {}
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   // @ts-ignore - I dislike ts-ignore
   client.ws.on("INTERACTION_CREATE", async (interaction: Interaction) => {
