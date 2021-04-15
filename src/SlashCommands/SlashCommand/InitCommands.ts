@@ -6,6 +6,7 @@ import { RestHandler } from "../RestHandler/RestHandler";
 import { ApplicationCommand } from "../RestHandler/types/ApplicationCommand";
 import { Interaction } from "../RestHandler/types/Interaction";
 import { SlashCommand } from "./SlashCommand";
+import { TypeConversion } from "./TypeConversion";
 // TODO: Add support for guild specific slash commands
 // As of now, all commands made are global.
 export async function initCommands(
@@ -36,8 +37,6 @@ export async function initCommands(
     }),
   );
 
-  console.log(current_guild_commands);
-
   const path = join(require.main.path, relative_path);
   const data = readdirSync(path);
   const global_commands = new Map<string, SlashCommand>();
@@ -56,7 +55,15 @@ export async function initCommands(
       );
       continue;
     }
-    // if (!Command.data) continue;
+    if (!Command.data) {
+      console.log("No data provided");
+      continue;
+    }
+
+    Command.data.options = TypeConversion(Command.data.options);
+
+    console.log(Command.data.options);
+
     if (Command.data.guilds && typeof Command.data.guilds === "string")
       Command.data.guilds = [Command.data.guilds];
 
@@ -120,28 +127,31 @@ export async function initCommands(
     }
   }
 
-  // for (const arr_of_commands of current_guild_commands) {
-  //   if (arr_of_commands && arr_of_commands.length > 0) {
-  //     for (const guild_command of arr_of_commands) {
-  //       // As of right now I can't think of any other way to delete the command correctly other
-  //       // than looping through all guilds and deleting it from all of them, even if it doesn't exist
-  //       // in that guild. I don't believe the ApplicationCommand has any information on the
-  //       // guilds that it exists in, and if the command isn't set in the guild_commands map
-  //       // then we have no way of knowing which guilds to remove it from... If you have any other way of
-  //       // doing this, feel free.
-  //       if (!guild_commands.get(guild_command.name.toLowerCase())) {
-  //         for (const [guildId, __] of client.guilds.cache) {
-  //           try {
-  //             await rest.delete(guild_command.id, guildId);
-  //             console.log(
-  //               `Deleted Command: ${guild_command.name} from ${__.name}`,
-  //             );
-  //           } catch (err) {}
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  for (const arr_of_commands of current_guild_commands) {
+    if (
+      arr_of_commands &&
+      (arr_of_commands as ApplicationCommand[]).length > 0
+    ) {
+      for (const guild_command of arr_of_commands as ApplicationCommand[]) {
+        // As of right now I can't think of any other way to delete the command correctly other
+        // than looping through all guilds and deleting it from all of them, even if it doesn't exist
+        // in that guild. I don't believe the ApplicationCommand has any information on the
+        // guilds that it exists in, and if the command isn't set in the guild_commands map
+        // then we have no way of knowing which guilds to remove it from... If you have any other way of
+        // doing this, feel free.
+        if (!guild_commands.get(guild_command.name.toLowerCase())) {
+          for (const [guildId, __] of client.guilds.cache) {
+            try {
+              await rest.delete(guild_command.id, guildId);
+              console.log(
+                `Deleted Command: ${guild_command.name} from ${__.name}`,
+              );
+            } catch (err) {}
+          }
+        }
+      }
+    }
+  }
 
   // @ts-ignore - I dislike ts-ignore
   client.ws.on("INTERACTION_CREATE", async (interaction: Interaction) => {
