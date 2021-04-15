@@ -1,4 +1,4 @@
-import { Guild } from "discord.js";
+import { Guild, TextChannel } from "discord.js";
 import { readdirSync } from "fs";
 import { join } from "path";
 import { Client } from "../../Client";

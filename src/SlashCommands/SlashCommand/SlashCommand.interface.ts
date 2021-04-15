@@ -23,5 +23,12 @@ export interface SlashCommandType {
     | MessageEmbed
     | Array<MessageEmbed>
     | Array<string>
-    | Array<string | MessageEmbed>;
+    | Array<string | MessageEmbed>
+    | Promise<
+        | string
+        | MessageEmbed
+        | Array<MessageEmbed>
+        | Array<string>
+        | Array<string | MessageEmbed>
+      >;
 }

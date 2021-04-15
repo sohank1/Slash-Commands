@@ -60,7 +60,7 @@ export class RestHandler {
     guild?: Guild | null,
     channel?: Channel | null,
   ): Promise<unknown | undefined> {
-    const command_callback_response = data.response({
+    const command_callback_response = await data.response({
       client: this.client,
       guild,
       member,
@@ -69,6 +69,8 @@ export class RestHandler {
       interaction,
     });
     if (!command_callback_response) return undefined;
+
+    console.log(command_callback_response);
 
     const _data: { content?: string; embeds?: Array<MessageEmbed> } = {};
     if (typeof command_callback_response === "string")
@@ -79,13 +81,19 @@ export class RestHandler {
       const strings = command_callback_response.filter(
         (v) => typeof v === "string",
       );
-      const embeds = command_callback_response.filter(
-        (v) => v instanceof MessageEmbed,
-      );
+      const embeds = command_callback_response.filter((v) => {
+        console.log(v, typeof v === "object");
+        // return v instanceof MessageEmbed;
+        return typeof v === "object";
+      });
+
+      console.log(embeds);
 
       if (strings.length > 0) _data.content = strings.join("");
       // @ts-ignore -- Idk why this is needed, I thought the above filter would take care of it... /shrug
       if (embeds.length > 0) _data.embeds = embeds;
+
+      console.log(_data);
     }
 
     return await this.client.api
