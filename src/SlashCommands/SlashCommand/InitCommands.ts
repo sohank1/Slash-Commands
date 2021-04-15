@@ -59,8 +59,8 @@ export async function initCommands(
       console.log("No data provided");
       continue;
     }
-
-    Command.data.options = TypeConversion(Command.data.options);
+    if (Command.data.options && Command.data.options.length > 0)
+      Command.data.options = TypeConversion(Command.data.options);
 
     console.log(Command.data.options);
 
