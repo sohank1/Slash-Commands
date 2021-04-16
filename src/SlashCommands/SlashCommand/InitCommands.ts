@@ -123,7 +123,7 @@ export async function initCommands(
       try {
         await rest.delete(apiCommand.id);
         console.log("Deleted Command: " + apiCommand.name + " from the api."); // This is unecessary, can either be changed to look nicer, or removed.
-      } catch (err) {}
+      } catch (err) { }
     }
   }
 
@@ -146,7 +146,7 @@ export async function initCommands(
               console.log(
                 `Deleted Command: ${guild_command.name} from ${__.name}`,
               );
-            } catch (err) {}
+            } catch (err) { }
           }
         }
       }
@@ -164,8 +164,8 @@ export async function initCommands(
 
     await rest.callback(
       interaction,
-      global_commands.get(data.name)?.data ??
-        guild_commands.get(data.name)?.data,
+      global_commands.get(data.name) ??
+      guild_commands.get(data.name),
       member_object,
       guild ?? null,
       channel ?? null,

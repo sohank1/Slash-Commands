@@ -3,6 +3,7 @@ import { Client } from "../../Client";
 import { ApplicationCommand } from "./types/ApplicationCommand";
 import { SlashCommandType } from "../SlashCommand/SlashCommand.interface";
 import { Interaction } from "./types/Interaction";
+import { SlashCommand } from "../SlashCommand/SlashCommand";
 // TODO: Add support for guild specific slash commands
 // As of now, all commands made are global.
 
@@ -11,7 +12,7 @@ import { Interaction } from "./types/Interaction";
  * Used to send slash command api requests
  */
 export class RestHandler {
-  constructor(private client: Client) {}
+  constructor(private client: Client) { }
 
   public async get_commands(
     guild_id?: string,
@@ -55,12 +56,12 @@ export class RestHandler {
   // Change return type to something that actually makes sense, I just don't know what would be returned.
   public async callback(
     interaction: Interaction,
-    data: SlashCommandType,
+    command: SlashCommand,
     member: GuildMember,
     guild?: Guild | null,
     channel?: Channel | null,
   ): Promise<unknown | undefined> {
-    const command_callback_response = await data.response({
+    const command_callback_response = await command.onCommand({
       client: this.client,
       guild,
       member,
@@ -90,7 +91,7 @@ export class RestHandler {
       console.log(embeds);
 
       if (strings.length > 0) _data.content = strings.join("");
-      // @ts-ignore -- Idk why this is needed, I thought the above filter would take care of it... /shrug
+      //  @ts-ignore -- Idk why this is needed, I thought the above filter would take care of it... /shrug
       if (embeds.length > 0) _data.embeds = embeds;
 
       console.log(_data);
