@@ -107,6 +107,7 @@ export async function initCommands(
         console.log(
           "Loaded Global Command: " + Command.data.name.toLowerCase(),
         ); // This is unecessary, can either be changed to look nicer, or removed.s
+        Command._rest = rest;
         global_commands.set(Command.data.name.toLowerCase(), Command);
       } else
         console.log(

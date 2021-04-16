@@ -106,4 +106,46 @@ export class RestHandler {
         },
       });
   }
+
+  public async send(command_callback_response:
+    string
+    | MessageEmbed
+    | MessageEmbed[]
+    | string[]
+    | (string | MessageEmbed)[],
+    interaction: Interaction): Promise<unknown | undefined> {
+
+    const _data: { content?: string; embeds?: Array<MessageEmbed> } = {};
+    if (typeof command_callback_response === "string")
+      _data.content = command_callback_response;
+    else if (command_callback_response instanceof MessageEmbed)
+      _data.embeds = [command_callback_response];
+    else if (command_callback_response instanceof Array) {
+      const strings = command_callback_response.filter(
+        (v) => typeof v === "string",
+      );
+      const embeds = command_callback_response.filter((v) => {
+        console.log(v, typeof v === "object");
+        // return v instanceof MessageEmbed;
+        return typeof v === "object";
+      });
+
+      console.log(embeds);
+
+      if (strings.length > 0) _data.content = strings.join("");
+      //  @ts-ignore -- Idk why this is needed, I thought the above filter would take care of it... /shrug
+      if (embeds.length > 0) _data.embeds = embeds;
+
+      console.log(_data);
+    }
+
+    return await this.client.api
+      .interactions(interaction.id, interaction.token)
+      .callback.post({
+        data: {
+          type: 4,
+          data: _data,
+        },
+      });
+  }
 }
