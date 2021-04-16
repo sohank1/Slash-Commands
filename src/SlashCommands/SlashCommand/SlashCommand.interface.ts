@@ -11,24 +11,13 @@ export interface SlashCommandType {
   description: string;
   options?: ApplicationCommandOption[];
   default_permissions?: boolean | true;
-  response: ({}: {
-    interaction: Interaction;
-    user: User | null;
-    member: GuildMember | null;
-    guild: Guild | null;
-    channel: Channel | null;
-    client: Client;
-  }) =>
-    | string
-    | MessageEmbed
-    | Array<MessageEmbed>
-    | Array<string>
-    | Array<string | MessageEmbed>
-    | Promise<
-        | string
-        | MessageEmbed
-        | Array<MessageEmbed>
-        | Array<string>
-        | Array<string | MessageEmbed>
-      >;
+}
+
+export interface SlashyExecute {
+  interaction: Interaction;
+  user: User | null;
+  member: GuildMember | null;
+  guild: Guild | null;
+  channel: Channel | null;
+  client: Client;
 }

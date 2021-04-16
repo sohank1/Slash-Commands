@@ -1,7 +1,7 @@
 import { Channel, Guild, GuildMember, MessageEmbed } from "discord.js";
 import { Client } from "../../Client";
 import { ApplicationCommand } from "./types/ApplicationCommand";
-import { SlashCommandType } from "../SlashCommand/SlashCommand.interface";
+// import { SlashCommandType } from "../SlashCommand/SlashCommand.interface";
 import { Interaction } from "./types/Interaction";
 // TODO: Add support for guild specific slash commands
 // As of now, all commands made are global.
@@ -43,57 +43,79 @@ export class RestHandler {
     data: ApplicationCommand,
     guild_id?: string,
   ): Promise<ApplicationCommand | number> {
+    console.log(data);
     let api = this.client.api.applications(this.client.user.id);
     if (guild_id) api = api.guilds(guild_id);
     try {
-      return await api.commands.post({ data });
+      let res = await api.commands.post({ data: data });
     } catch (err) {
+      console.log(err);
       return err.httpStatus;
     }
+  }
+
+  public async edit(
+    interaction: Interaction,
+    data:
+      | string
+      | MessageEmbed
+      | string[]
+      | MessageEmbed[]
+      | (string | MessageEmbed)[],
+  ): Promise<unknown | undefined> {
+    console.log("in edit fn");
+    const _data: { content?: string; embeds?: Array<MessageEmbed> } = {};
+    if (typeof data === "string") _data.content = data;
+    else if (data instanceof MessageEmbed) _data.embeds = [data];
+    else if (data instanceof Array) {
+      const strings = data.filter((v) => typeof v === "string");
+      const embeds = data.filter((v) => typeof v === "object");
+
+      if (strings.length > 0) _data.content = strings.join("");
+      // @ts-ignore -- Idk why this is needed, I thought the above filter would take care of it... /shrug
+      if (embeds.length > 0) _data.embeds = embeds;
+    }
+    const res = await this.client.api
+      .webhooks(this.client.user.id, interaction.token)
+      .messages["@original"].patch({
+        data: _data,
+      });
+    console.log(res);
+    return res;
   }
 
   // Change return type to something that actually makes sense, I just don't know what would be returned.
   public async callback(
     interaction: Interaction,
-    data: SlashCommandType,
-    member: GuildMember,
-    guild?: Guild | null,
-    channel?: Channel | null,
+    data:
+      | string
+      | MessageEmbed
+      | string[]
+      | MessageEmbed[]
+      | (string | MessageEmbed)[],
   ): Promise<unknown | undefined> {
-    const command_callback_response = await data.response({
-      client: this.client,
-      guild,
-      member,
-      user: this.client.users.cache.get(member?.user.id),
-      channel,
-      interaction,
-    });
-    if (!command_callback_response) return undefined;
+    // const command_callback_response = await data.response({
+    //   client: this.client,
+    //   guild,
+    //   member,
+    //   user: this.client.users.cache.get(member?.user.id),
+    //   channel,
+    //   interaction,
+    // });
+    // if (!command_callback_response) return undefined;
 
-    console.log(command_callback_response);
+    // console.log(command_callback_response);
 
     const _data: { content?: string; embeds?: Array<MessageEmbed> } = {};
-    if (typeof command_callback_response === "string")
-      _data.content = command_callback_response;
-    else if (command_callback_response instanceof MessageEmbed)
-      _data.embeds = [command_callback_response];
-    else if (command_callback_response instanceof Array) {
-      const strings = command_callback_response.filter(
-        (v) => typeof v === "string",
-      );
-      const embeds = command_callback_response.filter((v) => {
-        console.log(v, typeof v === "object");
-        // return v instanceof MessageEmbed;
-        return typeof v === "object";
-      });
-
-      console.log(embeds);
+    if (typeof data === "string") _data.content = data;
+    else if (data instanceof MessageEmbed) _data.embeds = [data];
+    else if (data instanceof Array) {
+      const strings = data.filter((v) => typeof v === "string");
+      const embeds = data.filter((v) => typeof v === "object");
 
       if (strings.length > 0) _data.content = strings.join("");
       // @ts-ignore -- Idk why this is needed, I thought the above filter would take care of it... /shrug
       if (embeds.length > 0) _data.embeds = embeds;
-
-      console.log(_data);
     }
 
     return await this.client.api
